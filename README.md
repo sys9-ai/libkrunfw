@@ -4,6 +4,17 @@
 
 By having the kernel bundled in a dynamic library, ```libkrun``` can leave to the linker the work of mapping the sections into the process, and then directly inject those mappings into the guest without any kind of additional work nor processing.
 
+## run9 guest kernel
+
+The x86_64 configuration includes POSIX message queues, OverlayFS, bridge/veth,
+conntrack, IPv4/IPv6 iptables and nftables. These are required by ordinary nested
+Docker runtimes, including Docker 29's containerd image store. BoxLite builds
+this pinned source and packages the resulting library with the Linux runtime;
+prebuilt upstream firmware is not interchangeable with this configuration.
+
+Configuration changes are dependencies of the kernel build, including when the
+source tree has already been unpacked and built.
+
 ## Building
 
 ### Linux (generic variant)
