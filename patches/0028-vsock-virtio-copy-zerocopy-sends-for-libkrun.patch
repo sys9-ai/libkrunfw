@@ -1,0 +1,59 @@
+From 562569c06877c58f790c1f6a7417bc59ef68f3db Mon Sep 17 00:00:00 2001
+From: shizn <xin.shi@pingcap.com>
+Date: Thu, 19 Nov 2026 02:43:29 -0800
+Subject: [PATCH] vsock/virtio: copy zero-copy sends for the Run9 libkrun
+ device
+
+The pinned VMM accepts a single payload descriptor. Allocating linear
+SKBs for ordinary sends still leaves opt-in zero-copy sends that
+reference several user pages. Use the existing copied-completion
+fallback until the VMM supports scatter-gather TX.
+---
+ net/vmw_vsock/virtio_transport.c | 31 ++++---------------------------
+ 1 file changed, 4 insertions(+), 27 deletions(-)
+
+diff --git a/net/vmw_vsock/virtio_transport.c b/net/vmw_vsock/virtio_transport.c
+index 96615d2..e139d17 100644
+--- a/net/vmw_vsock/virtio_transport.c
++++ b/net/vmw_vsock/virtio_transport.c
+@@ -504,33 +504,10 @@ static void virtio_vsock_rx_done(struct virtqueue *vq)
+ 
+ static bool virtio_transport_can_msgzerocopy(int bufs_num)
+ {
+-	struct virtio_vsock *vsock;
+-	bool res = false;
+-
+-	rcu_read_lock();
+-
+-	vsock = rcu_dereference(the_virtio_vsock);
+-	if (vsock) {
+-		struct virtqueue *vq = vsock->vqs[VSOCK_VQ_TX];
+-
+-		/* Check that tx queue is large enough to keep whole
+-		 * data to send. This is needed, because when there is
+-		 * not enough free space in the queue, current skb to
+-		 * send will be reinserted to the head of tx list of
+-		 * the socket to retry transmission later, so if skb
+-		 * is bigger than whole queue, it will be reinserted
+-		 * again and again, thus blocking other skbs to be sent.
+-		 * Each page of the user provided buffer will be added
+-		 * as a single buffer to the tx virtqueue, so compare
+-		 * number of pages against maximum capacity of the queue.
+-		 */
+-		if (bufs_num <= vq->num_max)
+-			res = true;
+-	}
+-
+-	rcu_read_unlock();
+-
+-	return res;
++	/* Run9's libkrun expects one contiguous payload descriptor. Let
++	 * MSG_ZEROCOPY use the transport's copied-completion fallback.
++	 */
++	return false;
+ }
+ 
+ static bool virtio_transport_msgzerocopy_allow(void)
+-- 
+2.54.0 (Apple Git-157)
+

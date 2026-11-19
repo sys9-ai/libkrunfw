@@ -1,4 +1,4 @@
-KERNEL_VERSION = linux-6.12.76
+KERNEL_VERSION = linux-6.12.118
 KERNEL_REMOTE = https://cdn.kernel.org/pub/linux/kernel/v6.x/$(KERNEL_VERSION).tar.xz
 KERNEL_TARBALL = tarballs/$(KERNEL_VERSION).tar.xz
 KERNEL_SOURCES = $(KERNEL_VERSION)

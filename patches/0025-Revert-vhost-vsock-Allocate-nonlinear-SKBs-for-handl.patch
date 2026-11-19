@@ -11,19 +11,19 @@ This reverts commit 65e808a6023f883f298db734444a9c38e45af740.
  2 files changed, 8 insertions(+), 32 deletions(-)
 
 diff --git a/drivers/vhost/vsock.c b/drivers/vhost/vsock.c
-index deaadc2503a2..ad89ee3676db 100644
+index e89aac686e2c..070771a1d311 100644
 --- a/drivers/vhost/vsock.c
 +++ b/drivers/vhost/vsock.c
-@@ -352,7 +352,7 @@ vhost_vsock_alloc_skb(struct vhost_virtqueue *vq,
+@@ -367,7 +367,7 @@ vhost_vsock_alloc_skb(struct vhost_virtqueue *vq,
  		return NULL;
  
- 	/* len contains both payload and hdr */
--	skb = virtio_vsock_alloc_skb(len, GFP_KERNEL);
-+	skb = virtio_vsock_alloc_linear_skb(len, GFP_KERNEL);
+ 	/* Allocate only for the payload declared in the header. */
+-	skb = virtio_vsock_alloc_skb(payload_len + sizeof(hdr), GFP_KERNEL);
++	skb = virtio_vsock_alloc_linear_skb(payload_len + sizeof(hdr), GFP_KERNEL);
  	if (!skb)
  		return NULL;
  
-@@ -381,8 +381,10 @@ vhost_vsock_alloc_skb(struct vhost_virtqueue *vq,
+@@ -379,8 +379,10 @@ vhost_vsock_alloc_skb(struct vhost_virtqueue *vq,
  
  	virtio_vsock_skb_put(skb, payload_len);
  
